@@ -1,0 +1,258 @@
+.login-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: calc(100vh - 64px);
+  padding-top: 72px;
+}
+
+.login-container {
+  background: var(--surface);
+  padding: 32px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  width: 100%;
+  max-width: 420px;
+  box-sizing: border-box;
+}
+
+.login-container h1 {
+  margin: 0 0 8px 0;
+  color: var(--text);
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.login-container > p {
+  margin: 0 0 20px 0;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.error-message {
+  padding: 12px 16px;
+  background-color: #fef2f2;
+  color: #991b1b;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #fecaca;
+  font-size: 0.95rem;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 1rem;
+  background: var(--surface);
+  color: var(--text);
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.form-group input:hover {
+  border-color: var(--accent);
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(0, 121, 211, 0.1);
+}
+
+.form-group input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.form-group input::placeholder {
+  color: var(--muted);
+  opacity: 0.7;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 12px 20px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.login-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .login-page {
+    padding: 0 12px;
+    padding-top: 48px;
+    min-height: calc(100vh - 56px);
+  }
+
+  .login-container {
+    padding: 24px;
+    margin: 0;
+    border-radius: 12px;
+  }
+
+  .login-container h1 {
+    font-size: 1.5rem;
+  }
+
+  .login-container > p {
+    font-size: 0.95rem;
+  }
+
+  .form-group input {
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    border-radius: 10px;
+  }
+
+  .login-btn {
+    padding: 12px;
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-page {
+    padding: 0 8px;
+    padding-top: 32px;
+  }
+
+  .login-container {
+    padding: 20px;
+  }
+
+  .login-container h1 {
+    font-size: 1.3rem;
+  }
+
+  .login-container > p {
+    font-size: 0.9rem;
+  }
+
+  .form-group {
+    margin-bottom: 14px;
+  }
+
+  .form-group label {
+    font-size: 0.85rem;
+  }
+
+  .form-group input {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    border-radius: 8px;
+  }
+
+  .login-btn {
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .error-message {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .login-page {
+    padding: 0 4px;
+    padding-top: 24px;
+  }
+
+  .login-container {
+    padding: 16px;
+  }
+
+  .login-container h1 {
+    font-size: 1.1rem;
+  }
+
+  .login-container > p {
+    font-size: 0.85rem;
+  }
+
+  .form-group input {
+    padding: 6px 10px;
+    font-size: 0.85rem;
+  }
+
+  .login-btn {
+    padding: 8px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+  .error-message {
+    background-color: #7f1d1d;
+    color: #fca5a5;
+    border-color: #991b1b;
+  }
+
+  .form-group input {
+    background: var(--surface);
+  }
+
+  .form-group input:disabled {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Touch-friendly for mobile */
+@media (hover: none) and (pointer: coarse) {
+  .form-group input,
+  .login-btn {
+    font-size: 16px;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .login-btn {
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .login-btn:hover:not(:disabled) {
+    transform: none !important;
+  }
+}
