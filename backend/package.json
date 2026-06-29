@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "lint": "eslint .",
+      "lint:fix": "eslint . --fix"
   },
   "author": "",
   "license": "ISC",
@@ -17,5 +19,10 @@
     "markdown-it": "^14.1.0",
     "mongoose": "^9.7.2",
     "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0"
   }
 }
