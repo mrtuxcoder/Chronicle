@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { articleService } from '../services/api';
 import ArticleCard from '../components/ArticleCard';
@@ -86,7 +86,7 @@ function Home() {
 
         {(search || selectedTag) && (
           <div className="filter-info">
-            {search && <span>Search: "{search}"</span>}
+            {search && <span>Search: &quot;{search}&quot;</span>}
             {selectedTag && <span>Tag: #{selectedTag}</span>}
             <button onClick={handleClearFilters} className="clear-btn">
               Clear filters

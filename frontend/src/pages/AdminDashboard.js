@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { FiPlus, FiEdit2, FiTrash2, FiEye, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { articleService } from '../services/api';

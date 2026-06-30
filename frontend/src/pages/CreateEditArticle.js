@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { articleService } from '../services/api';
 import { formatDate } from '../utils/helpers';
@@ -107,7 +107,7 @@ function CreateEditArticle() {
     let html = '';
     let inList = false;
     
-    lines.forEach((line, index) => {
+    lines.forEach((line) => {
       const trimmedLine = line.trim();
       
       // Headers
