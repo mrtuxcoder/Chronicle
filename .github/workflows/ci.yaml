@@ -15,11 +15,15 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          cache-dependency-path: |
+                 frontend/package-lock.json
+                 backend/package-lock.json
+
       - name: install dependencies client
-        run: npm install
+        run: npm ci
         working-directory: frontend
       - name: install dependencies server
-        run: npm install
+        run: npm ci
         working-directory: backend
       - name: run lint client
         run: npm run lint
