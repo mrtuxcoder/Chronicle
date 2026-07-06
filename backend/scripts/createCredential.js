@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 // Usage: node createCredential.js <username> <password> [role]
 const connectDB = require('../config/db');
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const Credential = require('../models/Credential');
 
