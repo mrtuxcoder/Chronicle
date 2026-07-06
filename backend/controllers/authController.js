@@ -1,11 +1,8 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const Credential = require('../models/Credential');
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@chronicle.com';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
-const ADMIN_PASSWORD_HASH = bcrypt.hashSync(ADMIN_PASSWORD, 10);
-
-// Admin login
+// Admin/login using credentials stored in DB
 exports.adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -14,25 +11,24 @@ exports.adminLogin = async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Check credentials
-    if (email !== ADMIN_EMAIL) {
+    // Find credential by username (email)
+    const credential = await Credential.findOne({ username: email.toLowerCase() });
+    if (!credential) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    const passwordMatches = bcrypt.compareSync(password, ADMIN_PASSWORD_HASH);
-
+    const passwordMatches = await bcrypt.compare(password, credential.passwordHash);
     if (!passwordMatches) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Generate JWT token (valid for 24 hours)
     const token = jwt.sign(
-      { email, role: 'admin' },
+      { username: credential.username, role: credential.role },
       process.env.JWT_SECRET || 'your-secret-key',
       { expiresIn: '24h' }
     );
 
-    res.json({ token, user: { email, role: 'admin' } });
+    res.json({ token, user: { username: credential.username, role: credential.role } });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
