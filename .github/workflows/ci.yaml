@@ -112,5 +112,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: frontend-build
+          path: frontend/build
       - name: list all
-        run: ls
+        run: ls frontend
