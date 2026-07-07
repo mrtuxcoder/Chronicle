@@ -8,6 +8,9 @@ env:
   MONGO_URI: mongodb://localhost:27017/chronicle_test
   JWT_SECRET: ${{ secrets.JWT_SECRET }}
   PORT: ${{ secrets.PORT }}
+  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+  VM_HOST: ${{ secrets.VM_HOST }}
+  VM_USER: ${{ secrets.VM_USER }}
 
 jobs:
   lint:
@@ -113,5 +116,12 @@ jobs:
         with:
           name: frontend-build
           path: frontend/build
-      - name: list all
-        run: ls frontend
+      - name: create .pem file
+        run: 
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem 
+      - name: ssh into VM
+        run: ssh -i private_key.pem ${VM_USER}@${VM_HOST}
+      - name: exit ssh
+        run: exit
+
