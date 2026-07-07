@@ -120,8 +120,10 @@ jobs:
         run: 
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem 
-      - name: ssh into VM
-        run: ssh -i private_key.pem ${VM_USER}@${VM_HOST}
-      - name: exit ssh
-        run: exit
+      - name: Test SSH
+        run: |
+             ssh -o StrictHostKeyChecking=no \ 
+             -i private_key.pem \    
+             ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} \    
+             "echo Connected! && hostname && pwd"
 
