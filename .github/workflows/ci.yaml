@@ -125,5 +125,5 @@ jobs:
              ssh -o StrictHostKeyChecking=no \ 
              -i private_key.pem \    
              ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} \    
-             "echo Connected! && hostname && pwd"
+             "echo Connected! && hostname && pwd "
 
