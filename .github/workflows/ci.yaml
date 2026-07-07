@@ -127,7 +127,8 @@ jobs:
           cat private_key.pem
       - name: Test SSH
         run: |
-             ssh -o StrictHostKeyChecking=no \
+             ssh -vvv \
+              -o StrictHostKeyChecking=no \
              -i private_key.pem \
              ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} \    
              "echo Connected! && hostname && pwd"
