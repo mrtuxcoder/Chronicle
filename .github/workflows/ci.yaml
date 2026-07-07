@@ -120,10 +120,15 @@ jobs:
         run: 
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem 
+      - name: print SSH info
+        run: |
+          echo "VM_HOST: $VM_HOST"
+          echo "VM_USER: $VM_USER"
+          cat private_key.pem
       - name: Test SSH
         run: |
-             ssh -o StrictHostKeyChecking=no \ 
-             -i private_key.pem \    
+             ssh -o StrictHostKeyChecking=no \
+             -i private_key.pem \
              ${{ secrets.VM_USER }}@${{ secrets.VM_HOST }} \    
-             "echo Connected! && hostname && pwd "
+             "echo Connected! && hostname && pwd"
 
