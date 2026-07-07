@@ -117,7 +117,7 @@ jobs:
           name: frontend-build
           path: frontend/build
       - name: create .pem file
-        run: 
+        run: |
           echo "$SSH_PRIVATE_KEY" > private_key.pem
           chmod 600 private_key.pem 
       - name: print SSH info
