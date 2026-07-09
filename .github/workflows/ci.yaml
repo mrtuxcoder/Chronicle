@@ -105,30 +105,32 @@ jobs:
           name: frontend-build
           path: frontend/build
   deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: copy repo
-        uses: actions/checkout@v4
+  needs: build
+  runs-on: ubuntu-latest
 
-      - name: download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-build
-          path: frontend/build
-      - name: create .pem file
-        run: |
-          echo "$SSH_PRIVATE_KEY" > private_key.pem
-          chmod 600 private_key.pem 
-      - name: print SSH info
-        run: |
-          echo "VM_HOST: $VM_HOST"
-          echo "VM_USER: $VM_USER"
-          cat private_key.pem
-      - name: Test SSH
-        run: |
-          ssh \
+  steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build
+        path: frontend-build
+
+    - name: Create SSH key
+      run: |
+        echo "$SSH_PRIVATE_KEY" > private_key.pem
+        chmod 600 private_key.pem
+
+    - name: Test SSH
+      run: |
+        ssh \
           -o StrictHostKeyChecking=no \
           -i private_key.pem \
           "$VM_USER@$VM_HOST" \
           "echo Connected! && hostname && pwd"
+
+    - name: Transfer build files
+      run: |
+        rsync -avz \
+          -e "ssh -o StrictHostKeyChecking=no -i private_key.pem" \
+          frontend-build/ \
+          "$VM_USER@$VM_HOST:/home/mrtuxcoder/app/frontend/build/"
