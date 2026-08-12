@@ -28,8 +28,8 @@ jobs:
           ssh \
             -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=no \
-            "$SERVER_USER@$SERVER_HOST" \
+            "$VM_USER@$VM_HOST" \
             'hostname && docker --version'
         env:
-          SERVER_USER: ${{ secrets.VM_USER }}
-          SERVER_HOST: ${{ secrets.VM_HOST }}
+          VM_USER: ${{ secrets.VM_USER }}
+          VM_HOST: ${{ secrets.VM_HOST }}
