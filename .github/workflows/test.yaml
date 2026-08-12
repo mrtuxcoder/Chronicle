@@ -1,10 +1,10 @@
-name: Test Tailscale
+name: Test SSH Deployment
 
 on:
   workflow_dispatch:
 
 jobs:
-  tailscale:
+  deploy-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -15,11 +15,21 @@ jobs:
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
 
-      - name: Show Tailscale status
+      - name: Configure SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
-          tailscale status
-          tailscale ip -4
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
 
-      - name: Test Lenovo
+      - name: Test SSH
         run: |
-          tailscale ping mrtuxcoder
+          ssh \
+            -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=no \
+            "$SERVER_USER@$SERVER_HOST" \
+            'hostname && docker --version'
+        env:
+          SERVER_USER: ${{ secrets.VM_USER }}
+          SERVER_HOST: ${{ secrets.VM_HOST }}
