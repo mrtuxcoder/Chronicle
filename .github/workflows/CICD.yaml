@@ -257,7 +257,7 @@ jobs:
             -o StrictHostKeyChecking=no \
             -i private_key.pem \
             "$VM_USER@$VM_HOST" \
-            "cd /home/$VM_USER/Chronicle/backend && npm ci --omit=dev"
+            "cd /opt/chronicle/current && npm ci --omit=dev"
 
       # ----------------------------------------------------------
       # Restart backend
