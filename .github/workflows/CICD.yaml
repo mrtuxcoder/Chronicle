@@ -1,4 +1,4 @@
-name: CI Workflow
+name: CI CD Workflow
 on:
   push:
     branches:
@@ -104,16 +104,28 @@ jobs:
         with:
           name: frontend-build
           path: frontend/build
+
+      - name: artifact backend
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-build
+          path: backend
   deploy:
    needs: build
    runs-on: ubuntu-latest
 
    steps:
-    - name: Download artifact
+    - name: Download frontend artifact
       uses: actions/download-artifact@v4
       with:
         name: frontend-build
         path: frontend-build
+
+    - name: Download backend artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: backend-build
+        path: backend
 
     - name: Connect to Tailscale
       uses: tailscale/github-action@v4
@@ -142,3 +154,19 @@ jobs:
           --rsync-path="sudo rsync" \
           frontend-build/ \
           "$VM_USER@$VM_HOST:/var/www/chronicle"
+
+    - name: Transfer backend files
+      run: |
+        rsync -avz \
+          -e "ssh -o StrictHostKeyChecking=no -i private_key.pem" \
+          --rsync-path="sudo rsync" \
+          backend/ \
+          "$VM_USER@$VM_HOST:/home/$VM_USER/Chronicle/backend"
+
+    - name: Restart backend service
+      run: |
+        ssh \
+          -o StrictHostKeyChecking=no \
+          -i private_key.pem \
+          "$VM_USER@$VM_HOST" \
+          "pm2 restart chronicle-backend" 
