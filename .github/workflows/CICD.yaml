@@ -234,7 +234,6 @@ jobs:
 
           rsync -avz \
           -e "ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i private_key.pem" \
-          --rsync-path="sudo rsync" \
            backend-build/ \
           "$VM_USER@$VM_HOST:/opt/chronicle/releases/$GITHUB_SHA/"
 
