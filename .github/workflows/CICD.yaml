@@ -230,7 +230,7 @@ jobs:
           -o IdentitiesOnly=yes \
           -i private_key.pem \
           "$VM_USER@$VM_HOST" \
-          "sudo mkdir -p /opt/chronicle/releases/$GITHUB_SHA"
+          "mkdir -p /opt/chronicle/releases/$GITHUB_SHA"
 
           rsync -avz \
           -e "ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i private_key.pem" \
@@ -246,7 +246,7 @@ jobs:
            -o IdentitiesOnly=yes \
            -i private_key.pem \
            "$VM_USER@$VM_HOST" \
-           "sudo ln -sfn /opt/chronicle/releases/$GITHUB_SHA /opt/chronicle/current"
+           "ln -sfn /opt/chronicle/releases/$GITHUB_SHA /opt/chronicle/current"
 
       # ----------------------------------------------------------
       # Install production dependencies
