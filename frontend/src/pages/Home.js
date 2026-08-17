@@ -65,7 +65,7 @@ function Home() {
     <div className="home">
       <header className="home-header">
         <h1>Chronicle</h1>
-        <p>A minimal, modern publishing platform</p>
+        <p>A minimal, modern publishing platform...</p>
       </header>
 
       <div className="home-container">
