@@ -1,47 +1,57 @@
-name: CI CD Workflow
+name: Chronicle CI/CD
+
 on:
   push:
     branches:
       - main
-  
-env:
-  MONGO_URI: mongodb://localhost:27017/chronicle_test
-  JWT_SECRET: ${{ secrets.JWT_SECRET }}
-  PORT: ${{ secrets.PORT }}
-  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-  VM_HOST: ${{ secrets.VM_HOST }}
-  VM_USER: ${{ secrets.VM_USER }}
 
 jobs:
+
+  # ============================================================
+  # CI - LINT
+  # ============================================================
   lint:
+    name: Lint
     runs-on: ubuntu-latest
+
     steps:
-      - name: copy repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: setup node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: |
-                 frontend/package-lock.json
-                 backend/package-lock.json
+            frontend/package-lock.json
+            backend/package-lock.json
 
-      - name: install dependencies client
-        run: npm ci
+      - name: Install frontend dependencies
         working-directory: frontend
-      - name: install dependencies server
         run: npm ci
-        working-directory: backend
-      - name: run lint client
-        run: npm run lint
-        working-directory: frontend
-      - name: run lint server
-        run: npm run lint
-        working-directory: backend
 
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Lint frontend
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Lint backend
+        working-directory: backend
+        run: npm run lint
+
+
+  # ============================================================
+  # CI - TEST
+  # ============================================================
   test:
+    name: Test Backend
+    needs: lint
+    runs-on: ubuntu-latest
+
     services:
       mongodb:
         image: mongo:7.0
@@ -53,120 +63,192 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    needs: lint
-    runs-on: ubuntu-latest
+    env:
+      MONGO_URI: mongodb://localhost:27017/chronicle_test
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      PORT: ${{ secrets.PORT }}
+
     steps:
-      - name: copy repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: setup node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: |
-                 frontend/package-lock.json
-                 backend/package-lock.json
+            frontend/package-lock.json
+            backend/package-lock.json
 
-      - name: install dependencies server
+      - name: Install backend dependencies
+        working-directory: backend
         run: npm ci
-        working-directory: backend
-      - name: run tests server
-        run: npm test
-        working-directory: backend
 
+      - name: Run backend tests
+        working-directory: backend
+        run: npm test
+
+
+  # ============================================================
+  # CI - BUILD
+  # ============================================================
   build:
+    name: Build
     needs: test
     runs-on: ubuntu-latest
+
     steps:
-      - name: copy repo
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: setup node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: |
-                 frontend/package-lock.json
-                 backend/package-lock.json
+            frontend/package-lock.json
+            backend/package-lock.json
 
-      - name: install dependencies
+      # ----------------------------------------------------------
+      # Frontend
+      # ----------------------------------------------------------
+      - name: Install frontend dependencies
+        working-directory: frontend
         run: npm ci
-        working-directory: frontend
 
-      - name: build frontend
+      - name: Build frontend
+        working-directory: frontend
         run: npm run build
-        working-directory: frontend
 
-      - name: artifact build
+      - name: Upload frontend artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: frontend/build
 
-      - name: artifact backend
+      # ----------------------------------------------------------
+      # Backend
+      # ----------------------------------------------------------
+      - name: Prepare backend artifact
+        run: |
+          mkdir -p backend-build
+
+          rsync -a \
+            --exclude='.env' \
+            --exclude='node_modules' \
+            --exclude='.git' \
+            --exclude='coverage' \
+            backend/ \
+            backend-build/
+
+      - name: Upload backend artifact
         uses: actions/upload-artifact@v4
         with:
           name: backend-build
-          path: backend
+          path: backend-build/
+
+
+  # ============================================================
+  # CD - DEPLOY
+  # ============================================================
   deploy:
-   needs: build
-   runs-on: ubuntu-latest
+    name: Deploy to Lenovo Server
+    needs: build
+    runs-on: ubuntu-latest
 
-   steps:
-    - name: Download frontend artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: frontend-build
-        path: frontend-build
+    env:
+      VM_HOST: ${{ secrets.VM_HOST }}
+      VM_USER: ${{ secrets.VM_USER }}
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Download backend artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: backend-build
-        path: backend
+    steps:
 
-    - name: Connect to Tailscale
-      uses: tailscale/github-action@v4
-      with:
+      # ----------------------------------------------------------
+      # Download artifacts
+      # ----------------------------------------------------------
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend-build
+
+      - name: Download backend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-build
+          path: backend-build
+
+      # ----------------------------------------------------------
+      # Connect to Tailscale
+      # ----------------------------------------------------------
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
           oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
           oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
           tags: tag:ci
 
-    - name: Create SSH key
-      run: |
-        echo "$SSH_PRIVATE_KEY" > private_key.pem
-        chmod 600 private_key.pem
+      # ----------------------------------------------------------
+      # Configure SSH
+      # ----------------------------------------------------------
+      - name: Configure SSH key
+        run: |
+          printf '%s\n' "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
 
-    - name: Test SSH
-      run: |
-        ssh \
-          -o StrictHostKeyChecking=no \
-          -i private_key.pem \
-          "$VM_USER@$VM_HOST" \
-          "echo Connected! && hostname && pwd"
+      # ----------------------------------------------------------
+      # Verify server connection
+      # ----------------------------------------------------------
+      - name: Verify server connection
+        run: |
+          ssh \
+            -o StrictHostKeyChecking=no \
+            -i private_key.pem \
+            "$VM_USER@$VM_HOST" \
+            "echo 'Connected to:' && hostname && echo 'User:' && whoami"
 
-    - name: Transfer build files
-      run: |
-        rsync -avz \
-          -e "ssh -o StrictHostKeyChecking=no -i private_key.pem" \
-          --rsync-path="sudo rsync" \
-          frontend-build/ \
-          "$VM_USER@$VM_HOST:/var/www/chronicle"
+      # ----------------------------------------------------------
+      # Deploy frontend
+      # ----------------------------------------------------------
+      - name: Deploy frontend
+        run: |
+          rsync -avz \
+            -e "ssh -o StrictHostKeyChecking=no -i private_key.pem" \
+            --rsync-path="sudo rsync" \
+            frontend-build/ \
+            "$VM_USER@$VM_HOST:/var/www/chronicle/"
 
-    - name: Transfer backend files
-      run: |
-        rsync -avz \
-          -e "ssh -o StrictHostKeyChecking=no -i private_key.pem" \
-          --rsync-path="sudo rsync" \
-          backend/ \
-          "$VM_USER@$VM_HOST:/home/$VM_USER/Chronicle/backend"
+      # ----------------------------------------------------------
+      # Deploy backend
+      # ----------------------------------------------------------
+      - name: Deploy backend
+        run: |
+          rsync -avz \
+            -e "ssh -o StrictHostKeyChecking=no -i private_key.pem" \
+            --rsync-path="sudo rsync" \
+            backend-build/ \
+            "$VM_USER@$VM_HOST:/home/$VM_USER/Chronicle/backend/"
 
-    - name: Restart backend service
-      run: |
-        ssh \
-          -o StrictHostKeyChecking=no \
-          -i private_key.pem \
-          "$VM_USER@$VM_HOST" \
-          "pm2 restart chronicle-backend" 
+      # ----------------------------------------------------------
+      # Install production dependencies
+      # ----------------------------------------------------------
+      - name: Install backend dependencies
+        run: |
+          ssh \
+            -o StrictHostKeyChecking=no \
+            -i private_key.pem \
+            "$VM_USER@$VM_HOST" \
+            "cd /home/$VM_USER/Chronicle/backend && npm ci --omit=dev"
+
+      # ----------------------------------------------------------
+      # Restart backend
+      # ----------------------------------------------------------
+      - name: Restart backend
+        run: |
+          ssh \
+            -o StrictHostKeyChecking=no \
+            -i private_key.pem \
+            "$VM_USER@$VM_HOST" \
+            "pm2 restart chronicle-backend"
