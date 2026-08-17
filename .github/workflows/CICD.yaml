@@ -225,11 +225,28 @@ jobs:
       # ----------------------------------------------------------
       - name: Deploy backend
         run: |
+          ssh \
+          -o StrictHostKeyChecking=no \
+          -o IdentitiesOnly=yes \
+          -i private_key.pem \
+          "$VM_USER@$VM_HOST" \
+          "sudo mkdir -p /opt/chronicle/releases/$GITHUB_SHA"
+
           rsync -avz \
-            -e "ssh -o StrictHostKeyChecking=no -i private_key.pem" \
-            --rsync-path="sudo rsync" \
-            backend-build/ \
-            "$VM_USER@$VM_HOST:/home/$VM_USER/Chronicle/backend/"
+          -e "ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes -i private_key.pem" \
+          --rsync-path="sudo rsync" \
+           backend-build/ \
+          "$VM_USER@$VM_HOST:/opt/chronicle/releases/$GITHUB_SHA/"
+
+
+      - name: Activate backend release
+        run: |
+         ssh \
+           -o StrictHostKeyChecking=no \
+           -o IdentitiesOnly=yes \
+           -i private_key.pem \
+           "$VM_USER@$VM_HOST" \
+           "sudo ln -sfn /opt/chronicle/releases/$GITHUB_SHA /opt/chronicle/current"
 
       # ----------------------------------------------------------
       # Install production dependencies
