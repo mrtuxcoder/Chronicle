@@ -115,6 +115,13 @@ jobs:
         name: frontend-build
         path: frontend-build
 
+    - name: Connect to Tailscale
+      uses: tailscale/github-action@v4
+      with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
     - name: Create SSH key
       run: |
         echo "$SSH_PRIVATE_KEY" > private_key.pem
@@ -133,4 +140,4 @@ jobs:
         rsync -avz \
           -e "ssh -o StrictHostKeyChecking=no -i private_key.pem" \
           frontend-build/ \
-          "$VM_USER@$VM_HOST:/home/mrtuxcoder/app/frontend/build/"
+          "$VM_USER@$VM_HOST:/var/www/chronicle"
