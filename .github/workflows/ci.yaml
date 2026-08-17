@@ -139,6 +139,6 @@ jobs:
       run: |
         rsync -avz \
           -e "ssh -o StrictHostKeyChecking=no -i private_key.pem" \
-            --rsync-path="sudo rsync" \
-          frontend-build/ \ 
+          --rsync-path="sudo rsync" \
+          frontend-build/ \
           "$VM_USER@$VM_HOST:/var/www/chronicle"
