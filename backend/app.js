@@ -6,6 +6,7 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+console.log("Chronicle API is running...");
 
 // CORS middleware
 app.use((req, res, next) => {
