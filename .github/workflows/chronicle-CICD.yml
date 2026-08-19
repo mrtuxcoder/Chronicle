@@ -133,3 +133,86 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository_owner }}/chronicle-frontend:${{ github.sha }}
             ghcr.io/${{ github.repository_owner }}/chronicle-frontend:latest
+
+
+  # ─────────────────────────────────────────────
+  # Deploy to server
+  # ─────────────────────────────────────────────
+  deploy:
+    name: Deploy to Lenovo
+    needs: docker
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Connect to Tailscale
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Create SSH key
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key.pem
+          chmod 600 private_key.pem
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Test SSH connection
+        run: |
+          ssh \
+            -o StrictHostKeyChecking=no \
+            -i private_key.pem \
+            "$VM_USER@$VM_HOST" \
+            "echo Connected! && hostname"
+
+        env:
+          VM_USER: ${{ secrets.VM_USER }}
+          VM_HOST: ${{ secrets.VM_HOST }}
+
+      - name: Copy production Compose file
+        run: |
+          rsync -avz \
+            -e "ssh -o StrictHostKeyChecking=no -i private_key.pem" \
+            docker-compose.yml \
+            "$VM_USER@$VM_HOST:/opt/chronicle/docker-compose.yml"
+        env:
+          VM_USER: ${{ secrets.VM_USER }}
+          VM_HOST: ${{ secrets.VM_HOST }}
+
+      - name: Pull Docker images
+        run: |
+          ssh \
+            -o StrictHostKeyChecking=no \
+            -i private_key.pem \
+            "$VM_USER@$VM_HOST" \
+            "cd /opt/chronicle && docker compose pull"
+        env:
+          VM_USER: ${{ secrets.VM_USER }}
+          VM_HOST: ${{ secrets.VM_HOST }}
+
+      - name: Start application
+        run: |
+          ssh \
+            -o StrictHostKeyChecking=no \
+            -i private_key.pem \
+            "$VM_USER@$VM_HOST" \
+            "cd /opt/chronicle && docker compose up -d --remove-orphans"
+        env:
+          VM_USER: ${{ secrets.VM_USER }}
+          VM_HOST: ${{ secrets.VM_HOST }}
+
+      - name: Verify deployment
+        run: |
+          ssh \
+            -o StrictHostKeyChecking=no \
+            -i private_key.pem \
+            "$VM_USER@$VM_HOST" \
+            "cd /opt/chronicle && docker compose ps"
+        env:
+          VM_USER: ${{ secrets.VM_USER }}
+          VM_HOST: ${{ secrets.VM_HOST }}
