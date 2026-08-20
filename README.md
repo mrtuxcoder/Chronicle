@@ -194,4 +194,3 @@ Chronicle supports:
 ## License
 
 MIT
-```
