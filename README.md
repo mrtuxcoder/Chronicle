@@ -1,189 +1,197 @@
 # Chronicle Blogging Platform
 
-A full-stack blogging website with admin-only posting capabilities and public reading.
+A full-stack blogging platform with **public reading and admin-only publishing**.
+
+Chronicle allows anyone to read published articles, while only an authenticated administrator can create, edit, publish, and delete content.
 
 ## Features
 
-### Public Features
-- 📖 View all published blogs
-- 🔍 Search articles
-- 🏷️ Filter by tags
-- 👁️ View article details with reading time and view count
-- 📱 Responsive design
+### Public
+- Read published articles
+- Search articles
+- Filter by tags
+- View reading time and view count
+- Responsive design
+- Markdown-rendered content
 
-### Admin Features
-- 🔐 JWT authentication
-- ✍️ Create articles with markdown support
-- ✏️ Edit existing articles
-- 🗑️ Delete articles
-- 📝 Save as draft or publish
-- 🖼️ Upload cover image (optional)
-
-### Technical Features
-- ✅ Markdown editor
-- ✅ Automatic reading time calculation
-- ✅ Dynamic tags system
-- ✅ Publish date tracking
-- ✅ View count tracking
+### Admin
+- JWT authentication
+- Create, edit, and delete articles
+- Save drafts or publish articles
+- Markdown editor
+- Optional cover images
+- Manage published and draft articles
 
 ## Tech Stack
 
-### Frontend
-- **React** - UI library
-- **React Router** - Navigation
-- **Axios** - HTTP client
-- **React Markdown** - Markdown rendering
+**Frontend**
+- React
+- React Router
+- Axios
+- React Markdown
 
-### Backend
-- **Express.js** - Web server
-- **MongoDB** - Database
-- **Mongoose** - ODM
-- **JWT** - Authentication
-- **Bcrypt** - Password hashing
+**Backend**
+- Express.js
+- MongoDB
+- Mongoose
+- JWT
+- bcrypt
+
+## Authentication & Admin Setup
+
+Chronicle uses a single-administrator publishing model.
+
+Create an administrator credential using the provided script:
+
+```bash
+node scripts/createCredential.js <username> <password> [role]
+```
+
+Example:
+
+```bash
+node scripts/createCredential.js admin admin123 admin
+```
+
+The script:
+
+1. Connects to MongoDB.
+2. Checks whether the username already exists.
+3. Hashes the password using bcrypt.
+4. Stores the username, password hash, and role in MongoDB.
+
+The password is never stored as plaintext.
+
+The role defaults to `admin` if omitted:
+
+```bash
+node scripts/createCredential.js admin admin123
+```
+
+There is **no public user registration or public article posting**. Visitors can only read published content.
 
 ## Installation
 
-### Prerequisites
-- Node.js (v14+)
-- MongoDB (v4.4+)
-
-### Backend Setup
+### Backend
 
 ```bash
 cd backend
 npm install
 ```
 
-Configure `.env`:
-```
+Configure the backend `.env` with your database and application settings:
+
+```env
 PORT=5000
 MONGODB_URI=mongodb://localhost:27017/chronicle
-JWT_SECRET=your-secret-key-here
-ADMIN_EMAIL=admin@chronicle.com
-ADMIN_PASSWORD_HASH=$2a$10$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5E8e6X8Xzc29q
+JWT_SECRET=your-secret-key
 ```
 
-Start the server:
+Create an admin credential:
+
 ```bash
-npm run dev  # Development with nodemon
-npm start   # Production
+node scripts/createCredential.js <username> <password>
 ```
 
-### Frontend Setup
+Start the backend:
+
+```bash
+npm run dev
+```
+
+### Frontend
 
 ```bash
 cd frontend
 npm install
 ```
 
-Configure `.env`:
-```
+Configure:
+
+```env
 REACT_APP_API_URL=http://localhost:5000/api
 ```
 
-Start the frontend:
+Start:
+
 ```bash
 npm start
 ```
 
-The app will open at http://localhost:3000
+## API
 
-## Demo Credentials
+### Public
 
-- **Email:** admin@chronicle.com
-- **Password:** admin123
+```text
+GET /api/articles
+GET /api/articles/:slug
+GET /api/articles/tags
+```
 
-## API Endpoints
+### Protected Admin
 
-### Public Endpoints
-- `GET /api/articles` - Get all published articles
-- `GET /api/articles/:slug` - Get single article by slug
-- `GET /api/articles/tags` - Get all tags
+```text
+POST   /api/auth/login
+GET    /api/auth/verify
+POST   /api/articles
+PUT    /api/articles/:id
+DELETE /api/articles/:id
+GET    /api/articles/admin/all
+GET    /api/articles/admin/:id
+```
 
-### Admin Endpoints (Protected)
-- `POST /api/articles` - Create article
-- `PUT /api/articles/:id` - Update article
-- `DELETE /api/articles/:id` - Delete article
-- `GET /api/articles/admin/all` - Get all articles (published + draft)
-- `GET /api/articles/admin/:id` - Get article for editing
-- `POST /api/auth/login` - Admin login
-- `GET /api/auth/verify` - Verify token
+Protected article-management endpoints require administrator authentication.
 
 ## Project Structure
 
-```
+```text
 Chronicle/
 ├── backend/
 │   ├── models/
-│   │   └── Article.js
 │   ├── controllers/
-│   │   ├── articleController.js
-│   │   └── authController.js
 │   ├── routes/
-│   │   ├── articles.js
-│   │   └── auth.js
 │   ├── middleware/
-│   │   └── auth.js
+│   ├── scripts/
+│   │   └── createCredential.js
 │   ├── server.js
-│   ├── package.json
 │   └── .env
 ├── frontend/
-│   ├── public/
-│   │   └── index.html
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Navbar.js
-│   │   │   └── ArticleCard.js
 │   │   ├── pages/
-│   │   │   ├── Home.js
-│   │   │   ├── Article.js
-│   │   │   ├── Login.js
-│   │   │   ├── AdminDashboard.js
-│   │   │   └── CreateEditArticle.js
 │   │   ├── services/
-│   │   │   └── api.js
-│   │   ├── utils/
-│   │   │   └── helpers.js
-│   │   ├── App.js
-│   │   └── index.js
-│   ├── package.json
+│   │   └── utils/
 │   └── .env
 └── README.md
 ```
 
 ## Usage
 
-### Creating an Article
-1. Login at `/login` with demo credentials
-2. Click "Create New Article"
-3. Fill in title, content (markdown), and optional fields
-4. Save as draft or publish immediately
+### Create an Article
 
-### Publishing an Article
-1. Go to Admin Dashboard
-2. Find the article in draft status
-3. Click Edit
-4. Change status to "Published"
-5. Save
+1. Create an administrator credential.
+2. Log in through `/login`.
+3. Open the Admin Dashboard.
+4. Create an article using Markdown.
+5. Save it as a draft or publish it.
 
-### Reading Articles
-1. Visit the home page
-2. Browse all published articles
-3. Use search to find articles by title or content
-4. Filter by tags
-5. Click to read full article
+### Read Articles
+
+Visitors can browse, search, filter, and read published articles without an account.
 
 ## Markdown Support
 
-All standard Markdown features are supported:
-- Headers (# ## ### etc.)
-- Bold and italic (**bold**, *italic*)
-- Links [text](url)
-- Lists (- bullet points, 1. numbered lists)
-- Code blocks (\`\`\`language ... \`\`\`)
-- Blockquotes (> quote)
-- Images ![alt](url)
+Chronicle supports:
+
+- Headings
+- Bold and italic text
+- Links
+- Lists
+- Code blocks
+- Blockquotes
+- Images
 
 ## License
 
 MIT
+```
