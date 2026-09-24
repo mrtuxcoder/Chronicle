@@ -10,7 +10,7 @@ permissions:
   packages: write
 
 env:
-  MONGO_URI: mongodb://localhost:27017/chronicle_test
+  MONGODB_URI: ${{ secrets.MONGODB_URI }}
   JWT_SECRET: ${{ secrets.JWT_SECRET }}
   PORT: ${{ secrets.PORT }}
 
@@ -60,6 +60,8 @@ jobs:
     name: Test backend
     needs: lint
     runs-on: ubuntu-latest
+    env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
 
     services:
       mongodb:
