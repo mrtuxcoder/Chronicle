@@ -19,7 +19,7 @@ services:
     restart: unless-stopped
 
     environment:
-      MONGODB_URI: mongodb://mongodb:27017/chronicle
+      MONGODB_URI: ${MONGODB_URI}
       JWT_SECRET: ${JWT_SECRET}
       PORT: ${PORT}
 
